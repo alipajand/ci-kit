@@ -9,8 +9,8 @@
  *   changed file nothing in the configuration places.
  * - `remerge`: the pull request's head only re-merges an earlier head that passed CI with the base
  *   branch, and the files edited by hand in that merge select no job. Selects no job.
- * - `markdown`: every changed file is Markdown no job builds (`markdownOnly`). Selects no job, and
- *   the always-run jobs are skipped too.
+ * - `markdown`: every changed file is Markdown no job builds (`markdownOnly`), and none is an agent
+ *   instruction file. Selects no job, and the always-run jobs are skipped too.
  * - `impact`: the jobs the changed files select.
  *
  * Only `impact`, `remerge` and `markdown` can skip work, and only on a ready pull request into a
@@ -30,12 +30,32 @@ const allJobs = (config, value) =>
 const list = (paths) => `${paths.slice(0, 5).join(", ")}${paths.length > 5 ? ", …" : ""}`;
 
 /** Whether `changedFiles` is a non-empty list of Markdown files the configuration lets skip CI. */
+/**
+ * Agent instruction files. They are Markdown, but an agent acts on them, so a change to one is
+ * never Markdown-only: the always-run jobs (where the agent checks live) still run.
+ */
+export const AGENT_INSTRUCTIONS = [
+  "**/AGENTS.md",
+  "**/CLAUDE.md",
+  "**/CLAUDE.local.md",
+  "**/GEMINI.md",
+  ".github/copilot-instructions.md",
+  ".github/instructions/",
+  ".github/prompts/",
+  ".claude/",
+  ".cursor/",
+  ".windsurf/",
+];
+
 export function isMarkdownOnly(config, changedFiles) {
   if (!config.markdownOnly || !changedFiles || changedFiles.length === 0) {
     return false;
   }
   return changedFiles.every(
-    (path) => MARKDOWN.test(path) && !matchesAny(config.markdownOnly.exclude, path)
+    (path) =>
+      MARKDOWN.test(path) &&
+      !matchesAny(AGENT_INSTRUCTIONS, path) &&
+      !matchesAny(config.markdownOnly.exclude, path)
   );
 }
 

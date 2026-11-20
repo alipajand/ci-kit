@@ -49,6 +49,14 @@ The rules every GitHub Actions setup using ci-kit follows. **Lint** marks the on
 20. **A pull request into a release branch runs everything**, release jobs included, and so does a push to it: the merged commit isn't the one the pull request tested.
 21. **A manual run has its own entry point** (`workflow_dispatch`) that runs named release jobs on a pinned commit. It never reuses the pull request path. The pinned SHA must match the run's checkout. Otherwise its checks report on a different commit from the one they tested.
 
+## Agent instructions
+
+22. **Audit the agent instruction files in CI**: AGENTS.md, CLAUDE.md, and the Cursor, Copilot and MCP config. Fail on medium or worse: unsafe permissions, contradictions, or commands that don't exist. *agent-readiness-action with `context-audit`.*
+23. **Never let a pull request lower the agent-readiness score.** Compare against the base (`baseline-ref`, `max-score-drop: 0`), and keep `min-score` at the current score.
+24. **Agent instruction files are never "just docs".** A change to one runs the always-run jobs, even with the Markdown-only skip on. *ci-kit plan.*
+25. **Flag the files a human must review**, and read the reviewer's config from the base so a pull request can't change its own review. *agent-pr-reviewer-lite with `--config-ref`.*
+26. **Pin tools installed from git to a commit SHA**, and allow git installs explicitly (`npm install --allow-git=all github:owner/repo#<sha>`).
+
 ## Silencing a rule
 
 Turn a rule off for some workflows with `"lint": { "ignore": { "<rule>": ["<glob>"] } }`, or for one line with `# ci-kit-ignore: <rule> <reason>` on that line or the line above. Always give the reason.

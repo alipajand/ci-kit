@@ -25,7 +25,7 @@ A reusable workflow renames every check to `caller / job`, which breaks required
 | `conflict` | The pull request conflicts with its base. | none. CI result fails until the conflict is resolved. |
 | `full` | A pull request into, or a push to, a branch in `fullBranches`, any other event, or a pull request with no usable comparison base. | all |
 | `remerge` | (`remerge` on) The head merges the base into an earlier head that passed this workflow, and any hand edits made during the merge select no planned job. | none. Always-run jobs still run. |
-| `markdown` | (`markdownOnly` on) Every changed file is Markdown and none is excluded. | none, and the always-run jobs are skipped too. |
+| `markdown` | (`markdownOnly` on) Every changed file is Markdown, none is excluded, and none is an agent instruction file (AGENTS.md, CLAUDE.md, GEMINI.md, Copilot instructions and prompts, `.claude/`, `.cursor/`, `.windsurf/`). | none, and the always-run jobs are skipped too. |
 | `full` | A changed file sits outside every workspace, job path, `noImpact` glob and `alwaysRunPaths` glob. | all |
 | `impact` | Otherwise. | the jobs whose workspaces or paths the change affects |
 
@@ -63,7 +63,7 @@ While `alipajand/ci-kit` is private, only repositories owned by `alipajand` can 
 | `noImpact` | `[]` | Globs that select no job: docs, `.gitignore`, example env files. |
 | `alwaysRun` | `[]` | Jobs that run on every non-draft plan except `markdown`. Required by CI result. |
 | `alwaysRunPaths` | `[]` | Globs that only the always-run jobs check, such as CI scripts or the config itself. |
-| `markdownOnly` | `false` | `true`, or `{ "exclude": [globs] }` for Markdown that something tests, such as help content that a build renders. |
+| `markdownOnly` | `false` | `true`, or `{ "exclude": [globs] }` for Markdown that something tests, such as help content that a build renders. Agent instruction files are always excluded: an agent acts on them, so they run the always-run jobs, where the agent checks belong. |
 | `remerge` | `false` | `{ "workflow": "ci.yml" }`: the workflow file whose earlier passing run counts. Needs `actions: read`. |
 | `release` | `{ "jobs": [] }` | Jobs that run only on a ready pull request into a full branch, such as e2e or a release gate. They are required there and optional elsewhere. |
 | `manual` | `false` | `{ "event": "workflow_dispatch", "jobs": [release jobs], "pinnedSha": true }`: a manual entry point that runs some release jobs. With `pinnedSha`, the run fails unless its checkout matches the `sha` input given to `ci-kit/result`. |
@@ -81,6 +81,16 @@ Globs are anchored at the repository root: `*` stays within one path segment, `*
 - A `draft` or `conflict` plan always fails.
 
 It prints one line per job (`ok`, `FAIL`) and a summary table.
+
+## Agent checks
+
+The template's `agents` job, an always-run job, uses three tools that work the same way (deterministic, no LLM):
+
+- [agent-readiness-action](https://github.com/alipajand/agent-readiness-action) scores how ready the repository is for AI coding agents. With `context-audit`, it also audits the agent instruction files with its bundled [agent-context-doctor](https://github.com/alipajand/agent-context-doctor). Set `min-score` to the current score, and keep `max-score-drop: 0` on pull requests so no change lowers it. `context-fail-on: medium` fails on unsafe or contradictory instructions.
+- [agent-pr-reviewer-lite](https://github.com/alipajand/agent-pr-reviewer-lite) annotates the files in a pull request that a human should review before merge. It's advisory in the template, and its config (`agent-pr-reviewer-lite.config.json`) is read from the base, so a pull request can't change its own review. To make it a gate, drop the `exit 0`.
+- [agent-readiness-kit](https://github.com/alipajand/agent-readiness-kit) is the CLI behind the score. Run it locally (`ark audit`, `ark fix`) to see what's missing.
+
+The reviewer installs from GitHub at a pinned commit. npm 12 refuses git dependencies unless `--allow-git=all` is passed, so the template passes it.
 
 ## CLI
 

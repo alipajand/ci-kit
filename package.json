@@ -1,6 +1,6 @@
 {
   "name": "ci-kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Change-impact planning, a fail-closed result gate and workflow rules for GitHub Actions. Node built-ins only.",
   "type": "module",

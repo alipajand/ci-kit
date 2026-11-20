@@ -148,7 +148,7 @@ describe("plan wiring", () => {
 
   it("requires the result job to run always() and need every job", () => {
     assert.match(broken("    if: always()\n    needs: [changes, build,", "    needs: [changes, build,").join(), /result-job: .*always\(\)/);
-    assert.match(broken("needs: [changes, build, test-api, test-web, migrations, e2e]", "needs: [changes, build, test-api, test-web, migrations]").join(), /result-job: .*`e2e`/);
+    assert.match(broken("needs: [changes, build, agents, test-api, test-web, migrations, e2e]", "needs: [changes, build, agents, test-api, test-web, migrations]").join(), /result-job: .*`e2e`/);
   });
 
   it("requires every configured job to exist", () => {

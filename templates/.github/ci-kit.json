@@ -9,8 +9,8 @@
   },
   "workspaceInputs": { "api": ["db/**"] },
   "noImpact": ["docs/**", "*.md", ".env.example", ".gitignore"],
-  "alwaysRun": ["build"],
-  "alwaysRunPaths": ["scripts/ci/**", ".github/ci-kit.json"],
+  "alwaysRun": ["build", "agents"],
+  "alwaysRunPaths": ["scripts/ci/**", ".github/ci-kit.json", "agent-pr-reviewer-lite.config.json"],
   "markdownOnly": true,
   "remerge": { "workflow": "ci.yml" },
   "release": { "jobs": ["e2e"] }

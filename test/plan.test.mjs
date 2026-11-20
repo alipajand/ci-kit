@@ -103,6 +103,22 @@ describe("plan", () => {
       assert.equal(selected(markdown, { event: "workflow_dispatch" }).mode, "full");
     });
 
+    it("never counts agent instruction files as Markdown-only", () => {
+      for (const path of [
+        "AGENTS.md",
+        "apps/api/CLAUDE.md",
+        "GEMINI.md",
+        ".github/copilot-instructions.md",
+        ".github/instructions/api.instructions.md",
+        ".claude/agents/reviewer.md",
+        ".cursor/rules/style.md",
+      ]) {
+        assert.equal(isMarkdownOnly(CONFIG, ["docs/guide.md", path]), false, path);
+        assert.notEqual(selected(["docs/guide.md", path]).mode, "markdown", path);
+      }
+      assert.equal(isMarkdownOnly(CONFIG, ["docs/AGENTS-guide.md"]), true);
+    });
+
     it("is off unless configured", () => {
       const off = normalizeConfig({ jobs: { test: { paths: ["src/**"] } }, noImpact: ["*.md"] });
       assert.equal(isMarkdownOnly(off, ["README.md"]), false);

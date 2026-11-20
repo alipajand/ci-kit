@@ -77,6 +77,59 @@ jobs:
         env:
           ZIZMOR_VERSION: "1.31.1"
 
+  # Agent readiness: scores the repository for AI coding agents and audits its agent instruction
+  # files (AGENTS.md, CLAUDE.md, Cursor and Copilot rules). A pull request may not lower the score.
+  # Agent instruction files never count as Markdown-only, so a change to one always runs this.
+  agents:
+    name: Agent readiness
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.mode != 'markdown') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # the score baseline and the review diff need the base
+
+      - name: Agent readiness and instruction files
+        uses: alipajand/agent-readiness-action@8e3b737539789992397b50496cf9c9ff23420b9e # v1.2.0
+        with:
+          min-score: "55"
+          context-audit: "true"
+          context-fail-on: medium
+          baseline-ref: ${{ github.event.pull_request.base.sha }}
+          max-score-drop: ${{ github.event_name == 'pull_request' && '0' || '' }}
+
+      - name: Set up Node.js
+        if: github.event_name == 'pull_request'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+
+      # Advisory: annotates the files a human should review before merge. Its config is read from
+      # the base (HEAD^1 of the merge checkout), so a pull request can't change its own review.
+      - name: Files that need human review (advisory)
+        if: github.event_name == 'pull_request'
+        env:
+          REVIEWER: github:alipajand/agent-pr-reviewer-lite#71965e4dec2bd54075e0620a8b3be0622fba4666 # v1.0.0
+        run: |
+          if ! npm install --global --allow-git=all "$REVIEWER"; then
+            echo "::warning::Couldn't install agent-pr-reviewer-lite; no review hints for this run."
+            exit 0
+          fi
+          set +e
+          agent-pr-reviewer-lite --base HEAD^1 --head HEAD --config-ref HEAD^1 --format github
+          status=$?
+          agent-pr-reviewer-lite --base HEAD^1 --head HEAD --config-ref HEAD^1 --format markdown >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::This pull request touches files that need a human review (job summary). Advisory only."
+          fi
+          exit 0
+
   test:
     name: Test
     needs: changes
@@ -100,7 +153,7 @@ jobs:
   result:
     name: CI result
     if: always()
-    needs: [changes, lint, test]
+    needs: [changes, lint, agents, test]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
