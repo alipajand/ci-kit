@@ -127,15 +127,19 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           REVIEWER: github:alipajand/agent-pr-reviewer-lite#71965e4dec2bd54075e0620a8b3be0622fba4666 # v1.0.0
+        # npx, not npm install --global: a global install from git passes --global on to the build
+        # install, which then lacks the package's dev dependencies.
         run: |
-          if ! npm install --global --allow-git=all "$REVIEWER"; then
-            echo "::warning::Couldn't install agent-pr-reviewer-lite; no review hints for this run."
+          set +e
+          review() { npx --yes --allow-git=all --package="$REVIEWER" -- agent-pr-reviewer-lite --base HEAD^1 --head HEAD --config-ref HEAD^1 "$@"; }
+          review --format json > "$RUNNER_TEMP/review.json"
+          if ! [ -s "$RUNNER_TEMP/review.json" ]; then
+            echo "::warning::agent-pr-reviewer-lite didn't run; no review hints for this run."
             exit 0
           fi
-          set +e
-          agent-pr-reviewer-lite --base HEAD^1 --head HEAD --config-ref HEAD^1 --format github
+          review --format github
           status=$?
-          agent-pr-reviewer-lite --base HEAD^1 --head HEAD --config-ref HEAD^1 --format markdown >> "$GITHUB_STEP_SUMMARY"
+          review --format markdown >> "$GITHUB_STEP_SUMMARY"
           if [ "$status" -ne 0 ]; then
             echo "::warning::This pull request touches files that need a human review (job summary). Advisory only."
           fi
