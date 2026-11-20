@@ -1,0 +1,18 @@
+{
+  "name": "ci-kit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Change-impact planning, a fail-closed result gate and workflow rules for GitHub Actions. Node built-ins only.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "ci-kit": "bin/ci-kit.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "lint:workflows": "node bin/ci-kit.mjs lint"
+  }
+}

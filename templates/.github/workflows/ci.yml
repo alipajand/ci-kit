@@ -1,0 +1,180 @@
+name: CI
+
+# Starting point for a repository using ci-kit (README.md, "Adopting ci-kit"). Make "CI result"
+# the only required check of each protected branch: it fails unless every job ran as the plan
+# required, so a job skipped by mistake can't pass as "not needed".
+#
+# - A draft runs nothing but CI result, which fails it. Marking it ready runs CI; moving a pull
+#   request back to draft cancels the in-flight run.
+# - A pull request into a branch outside fullBranches runs the jobs its changes need, or nothing
+#   but CI result when it changes only Markdown.
+# - A pull request into main runs everything, including the release jobs (e2e). A push to main
+#   runs every planned job, since the merged commit is not the one the pull request tested.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push cancels a pull request's older run; a push to main is grouped by its commit, so a
+# later merge never cancels an earlier one's validation.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: Change impact
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read # remerge: whether CI passed on an earlier head
+      contents: read
+      pull-requests: read # the merge-conflict check
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      test-api: ${{ fromJSON(steps.plan.outputs.jobs)['test-api'] }}
+      test-web: ${{ fromJSON(steps.plan.outputs.jobs)['test-web'] }}
+      migrations: ${{ fromJSON(steps.plan.outputs.jobs)['migrations'] }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # the plan diffs against the base and inspects merges
+
+      - name: Plan the jobs
+        id: plan
+        uses: alipajand/ci-kit/plan@0000000000000000000000000000000000000000 # v1.0.0: replace with the release commit SHA
+
+  # Always-run: lint, typecheck, build and the repository's own guards. Skipped on a draft and on a
+  # Markdown-only plan; runs whenever the plan failed.
+  build:
+    name: Lint, typecheck, build
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.mode != 'markdown') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Merge conflict
+        if: github.event_name == 'pull_request'
+        uses: alipajand/ci-kit/merge-conflict@0000000000000000000000000000000000000000 # v1.0.0: replace with the release commit SHA
+
+      - name: Workflow rules
+        uses: alipajand/ci-kit/lint@0000000000000000000000000000000000000000 # v1.0.0: replace with the release commit SHA
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install, lint, typecheck, build
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm run build
+
+  # A planned job: needs the plan, runs unless the plan succeeded and said skip.
+  test-api:
+    name: Test (api)
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.test-api != 'false') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          cache: npm
+      - name: Test
+        run: |
+          npm ci
+          npm test --workspace api
+
+  test-web:
+    name: Test (web, packages)
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.test-web != 'false') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          cache: npm
+      - name: Test
+        run: |
+          npm ci
+          npm test --workspaces --if-present
+
+  migrations:
+    name: Migrations
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.migrations != 'false') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Check migrations
+        run: echo "Run the migration checks here."
+
+  # A release job: every ready pull request into main, after the build passed; nowhere else.
+  e2e:
+    name: End-to-end
+    needs: build
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.base_ref == 'main' && needs.build.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: End-to-end tests
+        run: echo "Run the browser suite here."
+
+  result:
+    name: CI result
+    if: always()
+    needs: [changes, build, test-api, test-web, migrations, e2e]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      # The judge reads the config; nothing else of the checkout runs.
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          sparse-checkout: .github
+
+      - name: Check every job against the plan
+        uses: alipajand/ci-kit/result@0000000000000000000000000000000000000000 # v1.0.0: replace with the release commit SHA
+        with:
+          needs: ${{ toJSON(needs) }}

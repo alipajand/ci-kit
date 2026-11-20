@@ -1,0 +1,18 @@
+name: ci-kit result
+description: Fail unless every job ran as the plan required. Make this the one required check.
+author: alipajand
+inputs:
+  needs:
+    description: Pass `${{ toJSON(needs) }}`.
+    required: true
+  config:
+    description: Path of the ci-kit config, relative to the workspace.
+    required: false
+    default: .github/ci-kit.json
+  sha:
+    description: A manual run's pinned commit input, when manual.pinnedSha is on.
+    required: false
+    default: ""
+runs:
+  using: node24
+  main: index.mjs

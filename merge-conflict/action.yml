@@ -1,0 +1,18 @@
+name: ci-kit merge conflict
+description: Stop a pull request job before any work when the pull request has a merge conflict.
+author: alipajand
+inputs:
+  fail:
+    description: Fail the step on a conflict (true) or only set the output (false).
+    required: false
+    default: "true"
+  token:
+    description: Token with pull-requests read access.
+    required: false
+    default: ${{ github.token }}
+outputs:
+  conflict:
+    description: "true when the pull request has a merge conflict."
+runs:
+  using: node24
+  main: index.mjs

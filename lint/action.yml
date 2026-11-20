@@ -1,0 +1,11 @@
+name: ci-kit lint
+description: Check the repository's workflows against the ci-kit rules (RULES.md).
+author: alipajand
+inputs:
+  config:
+    description: Path of the ci-kit config, relative to the workspace (optional file).
+    required: false
+    default: .github/ci-kit.json
+runs:
+  using: node24
+  main: index.mjs

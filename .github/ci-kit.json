@@ -1,0 +1,12 @@
+{
+  "workflow": ".github/workflows/ci.yml",
+  "fullBranches": [],
+  "jobs": {
+    "test": { "paths": ["src/**", "bin/**", "test/**", "plan/**", "result/**", "merge-conflict/**", "lint/**", "package.json"] }
+  },
+  "noImpact": ["*.md", "LICENSE", "docs/**"],
+  "alwaysRun": ["lint"],
+  "alwaysRunPaths": ["templates/**", ".github/ci-kit.json", ".github/dependabot.yml", ".github/workflows/**"],
+  "markdownOnly": true,
+  "remerge": { "workflow": "ci.yml" }
+}

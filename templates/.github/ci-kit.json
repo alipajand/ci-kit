@@ -1,0 +1,17 @@
+{
+  "workflow": ".github/workflows/ci.yml",
+  "fullBranches": ["main"],
+  "workspaces": ["apps/*", "packages/*"],
+  "jobs": {
+    "test-api": { "workspaces": ["api"] },
+    "test-web": { "workspaces": ["*"] },
+    "migrations": { "paths": ["db/migrations/**"] }
+  },
+  "workspaceInputs": { "api": ["db/**"] },
+  "noImpact": ["docs/**", "*.md", ".env.example", ".gitignore"],
+  "alwaysRun": ["build"],
+  "alwaysRunPaths": ["scripts/ci/**", ".github/ci-kit.json"],
+  "markdownOnly": true,
+  "remerge": { "workflow": "ci.yml" },
+  "release": { "jobs": ["e2e"] }
+}

@@ -1,0 +1,115 @@
+name: CI
+
+# ci-kit's own CI, built from its own actions (`uses: ./plan` and so on), so every change is
+# tested by the code it changes. Its one required check is "CI result".
+#
+# - A draft runs nothing but CI result, which fails it; marking it ready (or a push) runs again.
+#   Moving a pull request back to draft cancels the in-flight run.
+# - A pull request that changes only Markdown runs nothing but Change impact and CI result.
+# - The tests run when the code, the tests or the actions change; the lint job always runs.
+# - A push to main runs everything.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: Change impact
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      test: ${{ fromJSON(steps.plan.outputs.jobs)['test'] }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Plan the jobs
+        id: plan
+        uses: ./plan
+
+  lint:
+    name: Lint
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.mode != 'markdown') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Merge conflict
+        if: github.event_name == 'pull_request'
+        uses: ./merge-conflict
+
+      - name: Workflow rules (ci-kit lint)
+        uses: ./lint
+
+      - name: actionlint
+        run: docker run --rm -v "$PWD:/repo" -w /repo "$ACTIONLINT_IMAGE" -color
+        env:
+          ACTIONLINT_IMAGE: rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 # v1.7.12
+
+      - name: zizmor
+        run: pipx run "zizmor==$ZIZMOR_VERSION" --offline --min-severity medium .github/workflows templates/.github/workflows
+        env:
+          ZIZMOR_VERSION: "1.31.1"
+
+  test:
+    name: Test
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.test != 'false') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+
+      - name: Test
+        run: npm test
+
+  result:
+    name: CI result
+    if: always()
+    needs: [changes, lint, test]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Check every job against the plan
+        uses: ./result
+        with:
+          needs: ${{ toJSON(needs) }}

@@ -1,0 +1,19 @@
+{
+  "workflow": ".github/workflows/ci.yml",
+  "fullBranches": ["main"],
+  "workspaces": ["apps/*", "packages/*"],
+  "jobs": {
+    "test-api": { "workspaces": ["api"] },
+    "test-web": { "workspaces": ["*"] },
+    "worker": { "workspaces": ["worker"] },
+    "migrations": { "paths": ["db/migrations/**", "scripts/db/**"] }
+  },
+  "workspaceInputs": { "api": ["db/**"] },
+  "noImpact": ["docs/**", "*.md", ".env.example"],
+  "alwaysRun": ["build"],
+  "alwaysRunPaths": ["scripts/ci/**"],
+  "markdownOnly": { "exclude": ["apps/web/content/**"] },
+  "remerge": { "workflow": "ci.yml" },
+  "release": { "jobs": ["e2e", "release-gate"] },
+  "manual": { "event": "workflow_dispatch", "jobs": ["e2e"], "pinnedSha": true }
+}

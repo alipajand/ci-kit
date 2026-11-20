@@ -1,0 +1,26 @@
+name: ci-kit plan
+description: Decide which CI jobs a change needs, from .github/ci-kit.json. Fails closed.
+author: alipajand
+inputs:
+  config:
+    description: Path of the ci-kit config, relative to the workspace.
+    required: false
+    default: .github/ci-kit.json
+  token:
+    description: >-
+      Token for the merge-conflict and re-merge lookups. Needs pull-requests: read, and
+      actions: read when remerge is on.
+    required: false
+    default: ${{ github.token }}
+outputs:
+  mode:
+    description: draft, conflict, remerge, markdown, full or impact.
+  reason:
+    description: One line on why.
+  jobs:
+    description: >-
+      JSON object of planned job id → true/false. Expose each to the workflow as a job output:
+      `test: ${{ fromJSON(steps.plan.outputs.jobs)['test'] }}`.
+runs:
+  using: node24
+  main: index.mjs
