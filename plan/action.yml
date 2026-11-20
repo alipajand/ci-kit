@@ -20,7 +20,7 @@ outputs:
   jobs:
     description: >-
       JSON object of planned job id → true/false. Expose each to the workflow as a job output:
-      `test: ${{ fromJSON(steps.plan.outputs.jobs)['test'] }}`.
+      `test` reads `fromJSON(steps.plan.outputs.jobs)['test']` (see README.md).
 runs:
   using: node24
   main: index.mjs

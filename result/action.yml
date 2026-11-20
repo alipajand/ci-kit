@@ -3,7 +3,7 @@ description: Fail unless every job ran as the plan required. Make this the one r
 author: alipajand
 inputs:
   needs:
-    description: Pass `${{ toJSON(needs) }}`.
+    description: The workflow's `needs` context, serialized with toJSON (see README.md).
     required: true
   config:
     description: Path of the ci-kit config, relative to the workspace.
