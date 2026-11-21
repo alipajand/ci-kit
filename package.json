@@ -1,6 +1,6 @@
 {
   "name": "ci-kit",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Change-impact planning, a fail-closed result gate and workflow rules for GitHub Actions. Node built-ins only.",
   "keywords": [
     "github-actions",
@@ -26,11 +26,23 @@
   "bin": {
     "ci-kit": "bin/ci-kit.mjs"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "plan/",
+    "result/",
+    "merge-conflict/",
+    "lint/",
+    "templates/"
+  ],
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test \"test/**/*.test.mjs\"",
+    "test": "node --test \"test/**/*.test.mjs\" \"test/**/*.test.js\"",
     "lint:workflows": "node bin/ci-kit.mjs lint"
+  },
+  "devDependencies": {
+    "fast-check": "4.10.2"
   }
 }

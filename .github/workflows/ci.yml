@@ -109,6 +109,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          package-manager-cache: false # no dependency cache: nothing restored can poison a build
 
       # Advisory: annotates the files a human should review before merge. Its config is read from
       # the base (HEAD^1 of the merge checkout), so a pull request can't change its own review.
@@ -150,6 +151,10 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          package-manager-cache: false # no dependency cache: nothing restored can poison a build
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Test
         run: npm test
