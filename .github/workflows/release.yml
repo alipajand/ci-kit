@@ -1,0 +1,92 @@
+name: Release
+
+# Publishes a GitHub release for a pushed `v*` tag. The tag must name the version in package.json
+# and a commit on main. The release carries the npm-packed tarball, its SHA256SUMS and a signed
+# SLSA build provenance attestation (Sigstore bundle). The assets are uploaded to a draft that is
+# then published, because published releases are immutable.
+#
+# Verify a download:
+#   gh attestation verify ci-kit-<version>.tgz --repo alipajand/ci-kit
+#   gh release verify v<version> --repo alipajand/ci-kit
+on:
+  push:
+    tags: ["v*"]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write # create the release and upload its assets
+      id-token: write # sign the provenance attestation with the workflow's OIDC identity
+      attestations: write # store the provenance attestation
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false # no dependency cache: nothing restored can poison a build
+
+      - name: Check the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::Tag $TAG doesn't match package.json version $version."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $TAG isn't on main."
+            exit 1
+          fi
+          if ! grep -q "^## $version " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $version."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Test
+        run: npm test
+
+      - name: Pack
+        id: pack
+        run: |
+          tarball="$(npm pack --ignore-scripts --silent)"
+          sha256sum "$tarball" > SHA256SUMS
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        id: attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.pack.outputs.tarball }}
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          version="${TAG#v}"
+          awk -v v="$version" '$0 ~ "^## " v " " {on=1; next} /^## / {on=0} on' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          cp "$BUNDLE" "$TARBALL.sigstore.json"
+          gh release create "$TAG" --draft --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md" \
+            "$TARBALL" "$TARBALL.sigstore.json" SHA256SUMS
+          gh release edit "$TAG" --draft=false --latest

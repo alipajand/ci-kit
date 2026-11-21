@@ -7,7 +7,8 @@ ci-kit plans which CI jobs a change needs and judges, at the end of a run, wheth
 ## Commands
 
 ```bash
-npm test                      # node --test, every test/**/*.test.mjs
+npm ci --ignore-scripts       # fast-check, the one dev dependency
+npm test                      # node --test: test/**/*.test.mjs and the property tests (*.test.js)
 node bin/ci-kit.mjs lint      # ci-kit's own workflow rules, on this repository
 ```
 
@@ -23,7 +24,7 @@ CI also runs actionlint and `uvx zizmor==1.31.1 --offline --min-severity medium 
 
 ## Rules
 
-- No runtime dependencies. Node built-ins only, Node 22+. Consumers run the actions without installing anything.
+- No runtime dependencies. Node built-ins only, Node 22+. Consumers run the actions without installing anything. fast-check is the one dev dependency, for the property tests.
 - Fail closed. A broken config, a failed plan or an unknown answer must lead to running more, never less. CI result must never pass a skipped job that should have run.
 - Keep `${{ }}` out of `action.yml` everywhere except `default:` values: the runner evaluates it even in descriptions (`test/actions.test.mjs`).
 - Pin every action by full commit SHA with the tag as a comment, and every `docker://` image by digest.

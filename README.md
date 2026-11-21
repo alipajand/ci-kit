@@ -7,7 +7,7 @@
 
 Change-aware CI for GitHub Actions. ci-kit decides which jobs a pull request needs, and checks at the end that every job ran as planned. This makes one required check, **CI result**, safe to lean on: a job skipped by mistake can't pass as "not needed".
 
-It ships as four JavaScript actions and a CLI (Node 22+, no dependencies), configured by one file, `.github/ci-kit.json`. A playbook, [RULES.md](RULES.md), covers the workflow rules the linter checks and the ones it can't.
+It ships as four JavaScript actions and a CLI (Node 22+, no runtime dependencies), configured by one file, `.github/ci-kit.json`. A playbook, [RULES.md](RULES.md), covers the workflow rules the linter checks and the ones it can't.
 
 | Action | What it does |
 | --- | --- |
@@ -50,7 +50,14 @@ Anything ci-kit can't decide plans everything, and a plan that failed counts as 
 
 ### Versions
 
-Pin a release commit SHA, never a tag or a branch: `alipajand/ci-kit/plan@<sha> # v1.1.0`. Release tags are immutable. Every release commit and tag is signed, and [CHANGELOG.md](CHANGELOG.md) lists what changed. Dependabot's `github-actions` ecosystem proposes upgrades.
+Pin a release commit SHA, never a tag or a branch: `alipajand/ci-kit/plan@<sha> # v1.2.1`. Release tags are immutable. Every release commit and tag is signed, and [CHANGELOG.md](CHANGELOG.md) lists what changed. Dependabot's `github-actions` ecosystem proposes upgrades.
+
+From 1.2.1, the [release workflow](.github/workflows/release.yml) publishes each release from its tag. Every release is immutable and carries the packed tarball, its `SHA256SUMS`, and a signed SLSA build provenance attestation. To verify a download:
+
+```bash
+gh attestation verify ci-kit-1.2.1.tgz --repo alipajand/ci-kit
+gh release verify v1.2.1 --repo alipajand/ci-kit
+```
 
 ## Configuration
 
@@ -110,8 +117,11 @@ npm 12 refuses git-hosted packages unless `--allow-git=all` is passed, which is 
 ## Developing
 
 ```bash
+npm ci --ignore-scripts
 npm test
 ```
+
+The tests include property-based tests ([fast-check](https://fast-check.dev), the only dev dependency) for the glob matcher, the plan, the result judge and the API client.
 
 ```bash
 node bin/ci-kit.mjs lint

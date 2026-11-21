@@ -2,6 +2,13 @@
 
 Versions follow semantic versioning. Consumers pin a release commit SHA, with the tag as a comment.
 
+## 1.2.1 (2026-11-20)
+
+- Releases are published by a release workflow from a signed `v*` tag. Each one is immutable and carries the npm-packed tarball, `SHA256SUMS` and a signed SLSA build provenance attestation (`gh attestation verify`).
+- Property-based tests with fast-check (the one dev dependency) for the glob matcher, Markdown-only detection, the plan, the fail-closed result judge and the API path guard.
+- package.json lists the published `files`. Dependabot also watches npm.
+- No change to the actions or the CLI.
+
 ## 1.2.0 (2026-11-20)
 
 - New CodeQL workflow (the `actions` and `javascript-typescript` languages, `security-extended` queries) and an OpenSSF Scorecard workflow.

@@ -29,7 +29,6 @@ const allJobs = (config, value) =>
 
 const list = (paths) => `${paths.slice(0, 5).join(", ")}${paths.length > 5 ? ", …" : ""}`;
 
-/** Whether `changedFiles` is a non-empty list of Markdown files the configuration lets skip CI. */
 /**
  * Agent instruction files. They are Markdown, but an agent acts on them, so a change to one is
  * never Markdown-only: the always-run jobs (where the agent checks live) still run.
@@ -47,6 +46,7 @@ export const AGENT_INSTRUCTIONS = [
   ".windsurf/",
 ];
 
+/** Whether `changedFiles` is a non-empty list of Markdown files the configuration lets skip CI. */
 export function isMarkdownOnly(config, changedFiles) {
   if (!config.markdownOnly || !changedFiles || changedFiles.length === 0) {
     return false;
