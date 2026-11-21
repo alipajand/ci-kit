@@ -1,8 +1,26 @@
 {
   "name": "ci-kit",
   "version": "1.1.0",
-  "private": true,
   "description": "Change-impact planning, a fail-closed result gate and workflow rules for GitHub Actions. Node built-ins only.",
+  "keywords": [
+    "github-actions",
+    "ci",
+    "continuous-integration",
+    "monorepo",
+    "change-detection",
+    "required-checks",
+    "workflow-linter"
+  ],
+  "homepage": "https://github.com/alipajand/ci-kit#readme",
+  "bugs": {
+    "url": "https://github.com/alipajand/ci-kit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alipajand/ci-kit.git"
+  },
+  "author": "Ali Pajand",
+  "private": true,
   "type": "module",
   "license": "MIT",
   "bin": {

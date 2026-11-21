@@ -1,0 +1,18 @@
+name: Feature request
+description: A mode, config option, lint rule or template change.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What does your CI do today that you want to change?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: How it should behave, including what happens when it can't decide. ci-kit fails closed.
+    validations:
+      required: true
