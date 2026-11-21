@@ -122,12 +122,16 @@ export function revParse(root, rev) {
   }
 }
 
+const COMMIT_SHA = /^[0-9a-f]{40,64}$/;
+
 /**
- * The files changed between two commits, or null when either is unknown. `threeDot` compares
- * `head` with its merge base with `base`, as a pull request's "Files changed" does.
+ * The files changed between two commits, or null when either is unknown or isn't a full commit
+ * SHA (the values come from the event payload, so nothing else reaches git's command line).
+ * `threeDot` compares `head` with its merge base with `base`, as a pull request's "Files changed"
+ * does.
  */
 export function changedFilesBetween(root, base, head, { threeDot = false } = {}) {
-  if (!base || /^0+$/.test(base) || !head) {
+  if (!COMMIT_SHA.test(base ?? "") || /^0+$/.test(base) || !COMMIT_SHA.test(head ?? "")) {
     return null;
   }
   const range = threeDot ? [`${base}...${head}`] : [base, head];

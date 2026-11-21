@@ -6,9 +6,15 @@ const sleep = async () => {};
 
 describe("merge conflict", () => {
   it("reports a conflict and a clean pull request", async () => {
-    const conflicted = await checkMergeConflict({ sleep, fetchPull: async () => ({ mergeable: false, mergeable_state: "dirty" }) });
+    const conflicted = await checkMergeConflict({
+      sleep,
+      fetchPull: async () => ({ mergeable: false, mergeable_state: "dirty" }),
+    });
     assert.deepEqual(conflicted, { conflict: true, known: true, detail: "mergeable_state dirty" });
-    const clean = await checkMergeConflict({ sleep, fetchPull: async () => ({ mergeable: true, mergeable_state: "blocked" }) });
+    const clean = await checkMergeConflict({
+      sleep,
+      fetchPull: async () => ({ mergeable: true, mergeable_state: "blocked" }),
+    });
     assert.equal(clean.conflict, false);
     assert.equal(clean.known, true);
   });
@@ -26,7 +32,11 @@ describe("merge conflict", () => {
 
   it("treats no answer and API errors as unknown, not a conflict", async () => {
     const pending = await checkMergeConflict({ sleep, attempts: 2, fetchPull: async () => ({ mergeable: null }) });
-    assert.deepEqual(pending, { conflict: false, known: false, detail: "mergeability not computed yet after 2 attempts" });
+    assert.deepEqual(pending, {
+      conflict: false,
+      known: false,
+      detail: "mergeability not computed yet after 2 attempts",
+    });
     const broken = await checkMergeConflict({
       sleep,
       attempts: 1,

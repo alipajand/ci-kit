@@ -6,6 +6,9 @@ Versions follow semantic versioning. Consumers pin a release commit SHA, with th
 
 - Lint accepts GitHub's self-repository syntax (`uses: $/path`) as this repository's own code, like `./path`. RULES.md rule 1 recommends it for in-repo actions.
 - ci-kit's own CI references its actions as `$/plan`, `$/result`, `$/merge-conflict` and `$/lint`, which clears zizmor's `self-repository` notes. A scoped `.github/actionlint.yaml` ignore covers actionlint 1.7.12, which doesn't know the syntax yet.
+- The plan passes only full commit SHAs from the event payload to `git diff`, so a malformed `before`/`after` value can't reach git's command line as an option.
+- CI checks formatting with Prettier (`npm run format:check`, a new dev dependency) and fails below 80% line, branch or function test coverage (`npm run test:coverage`). The code is reformatted to match.
+- New GOVERNANCE.md, ROADMAP.md, CODE_OF_CONDUCT.md (Contributor Covenant 2.0), docs/ARCHITECTURE.md and a security assurance case (docs/ASSURANCE_CASE.md). SECURITY.md describes the vulnerability response process. CONTRIBUTING.md adds the test policy, the coding style and the Developer Certificate of Origin sign-off.
 
 ## 1.2.1 (2026-11-20)
 

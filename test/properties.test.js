@@ -120,9 +120,16 @@ describe("properties", () => {
 
   describe("plan", () => {
     const changedFiles = fc.option(
-      fc.array(fc.oneof(path, path.map((p) => `api/${p}`), path.map((p) => `web/${p}`)), {
-        maxLength: 6,
-      }),
+      fc.array(
+        fc.oneof(
+          path,
+          path.map((p) => `api/${p}`),
+          path.map((p) => `web/${p}`)
+        ),
+        {
+          maxLength: 6,
+        }
+      ),
       { nil: null }
     );
     const input = fc.record({
@@ -181,7 +188,11 @@ describe("properties", () => {
     const outcome = fc.constantFrom("success", "skipped", "failure", "cancelled", "missing");
     const needs = fc
       .record({
-        plan: fc.record({ result: outcome, mode: fc.constantFrom(...MODES), runs: fc.array(fc.boolean(), { minLength: 2, maxLength: 2 }) }),
+        plan: fc.record({
+          result: outcome,
+          mode: fc.constantFrom(...MODES),
+          runs: fc.array(fc.boolean(), { minLength: 2, maxLength: 2 }),
+        }),
         jobs: fc.dictionary(fc.constantFrom(...JOBS, "lint", "extra"), outcome),
       })
       .map(({ plan, jobs }) => {

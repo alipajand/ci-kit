@@ -54,8 +54,7 @@ function childIndent(lines, start, end) {
 }
 
 /** A key's whole value as one string: the inline part and any continuation lines. */
-export const valueOf = (entry) =>
-  entry ? [entry.inline, entry.block].filter(Boolean).join("\n").trim() : "";
+export const valueOf = (entry) => (entry ? [entry.inline, entry.block].filter(Boolean).join("\n").trim() : "");
 
 /** The job ids in a `needs:` value: a scalar, a flow list (one or many lines) or a block list. */
 export function needsList(entry) {

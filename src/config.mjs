@@ -87,9 +87,7 @@ export function normalizeConfig(raw) {
         fail(`jobs.${job} has unknown key "${key}"`);
       }
     }
-    const workspaces = selector.workspaces
-      ? stringList(selector.workspaces, `jobs.${job}.workspaces`)
-      : [];
+    const workspaces = selector.workspaces ? stringList(selector.workspaces, `jobs.${job}.workspaces`) : [];
     const paths = selector.paths ? globList(selector.paths, `jobs.${job}.paths`) : [];
     if (workspaces.length === 0 && paths.length === 0) {
       fail(`jobs.${job} selects nothing: give it workspaces, paths or both`);

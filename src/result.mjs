@@ -77,9 +77,7 @@ export function verifyResults(config, needs, context) {
     if (!good) {
       ok = false;
     }
-    lines.push(
-      `${good ? "ok  " : "FAIL"} ${job}: ${result} (${shouldRun ? "required" : "not needed"}${why})`
-    );
+    lines.push(`${good ? "ok  " : "FAIL"} ${job}: ${result} (${shouldRun ? "required" : "not needed"}${why})`);
   };
   const mustSkip = (job, why) => {
     const result = needs[job]?.result ?? "missing";

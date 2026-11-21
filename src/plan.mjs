@@ -24,8 +24,7 @@ export const MODES = ["draft", "conflict", "remerge", "markdown", "full", "impac
 
 const MARKDOWN = /\.(md|markdown)$/i;
 
-const allJobs = (config, value) =>
-  Object.fromEntries(Object.keys(config.jobs).map((job) => [job, value]));
+const allJobs = (config, value) => Object.fromEntries(Object.keys(config.jobs).map((job) => [job, value]));
 
 const list = (paths) => `${paths.slice(0, 5).join(", ")}${paths.length > 5 ? ", …" : ""}`;
 
@@ -53,9 +52,7 @@ export function isMarkdownOnly(config, changedFiles) {
   }
   return changedFiles.every(
     (path) =>
-      MARKDOWN.test(path) &&
-      !matchesAny(AGENT_INSTRUCTIONS, path) &&
-      !matchesAny(config.markdownOnly.exclude, path)
+      MARKDOWN.test(path) && !matchesAny(AGENT_INSTRUCTIONS, path) && !matchesAny(config.markdownOnly.exclude, path)
   );
 }
 
@@ -67,15 +64,7 @@ export function isMarkdownOnly(config, changedFiles) {
  * @returns {{ mode: string, reason: string, jobs: Record<string, boolean> }}
  */
 export function planJobs(config, input) {
-  const {
-    event,
-    baseRef = "",
-    draft = false,
-    conflict = false,
-    changedFiles,
-    workspaces = [],
-    remerge = null,
-  } = input;
+  const { event, baseRef = "", draft = false, conflict = false, changedFiles, workspaces = [], remerge = null } = input;
   const pullRequest = event === "pull_request";
   if (pullRequest && draft) {
     return { mode: "draft", reason: "draft pull request", jobs: allJobs(config, false) };
@@ -156,9 +145,7 @@ export function selectJobs(config, changedFiles, workspaces = []) {
     }
   }
   const affected = withDependents(workspaces, [...owners]);
-  const named = new Set(
-    Object.values(config.jobs).flatMap((selector) => selector.workspaces.filter((n) => n !== "*"))
-  );
+  const named = new Set(Object.values(config.jobs).flatMap((selector) => selector.workspaces.filter((n) => n !== "*")));
   const jobs = {};
   for (const [job, selector] of Object.entries(config.jobs)) {
     const byWorkspace = selector.workspaces.some((name) =>

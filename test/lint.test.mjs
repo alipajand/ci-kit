@@ -10,12 +10,9 @@ import { needsList, readWorkflow } from "../src/workflow.mjs";
 const ROOT = join(import.meta.dirname, "..");
 const SHA = "a".repeat(40);
 const TEMPLATE = readFileSync(join(ROOT, "templates/.github/workflows/ci.yml"), "utf8");
-const TEMPLATE_CONFIG = normalizeConfig(
-  JSON.parse(readFileSync(join(ROOT, "templates/.github/ci-kit.json"), "utf8"))
-);
+const TEMPLATE_CONFIG = normalizeConfig(JSON.parse(readFileSync(join(ROOT, "templates/.github/ci-kit.json"), "utf8")));
 
-const rules = (text, config = null) =>
-  lintWorkflow(".github/workflows/x.yml", text, config).map((f) => f.rule);
+const rules = (text, config = null) => lintWorkflow(".github/workflows/x.yml", text, config).map((f) => f.rule);
 
 const GOOD = `name: x
 on:
@@ -85,7 +82,10 @@ describe("lint rules", () => {
     assert.deepEqual(rules(GOOD.replace("concurrency:\n  group: x\n", "")), ["concurrency"]);
     assert.deepEqual(rules(GOOD.replace("    timeout-minutes: 5\n", "")), ["timeout"]);
     // A called workflow needs no concurrency of its own: the caller's would be cancelled.
-    const called = GOOD.replace(/on:\n(?: {2,}.*\n)+/, "on:\n  workflow_call:\n").replace("concurrency:\n  group: x\n", "");
+    const called = GOOD.replace(/on:\n(?: {2,}.*\n)+/, "on:\n  workflow_call:\n").replace(
+      "concurrency:\n  group: x\n",
+      ""
+    );
     assert.deepEqual(rules(called), []);
   });
 
@@ -96,7 +96,9 @@ describe("lint rules", () => {
 
   it("requires persist-credentials: false on every checkout", () => {
     assert.deepEqual(rules(GOOD.replace("persist-credentials: false", "fetch-depth: 0")), ["checkout-credentials"]);
-    assert.deepEqual(rules(GOOD.replace("persist-credentials: false", "persist-credentials: true")), ["checkout-credentials"]);
+    assert.deepEqual(rules(GOOD.replace("persist-credentials: false", "persist-credentials: true")), [
+      "checkout-credentials",
+    ]);
   });
 
   it("requires ready_for_review when drafts are skipped", () => {
@@ -132,29 +134,58 @@ describe("plan wiring", () => {
 
   it("requires every planned job's guard to fail open", () => {
     const guard = "needs.changes.result != 'success' || needs.changes.outputs.test-api != 'false'";
-    assert.match(broken(guard, "needs.changes.outputs.test-api != 'false'").join(), /plan-guard: .*must run when the plan fails/);
-    assert.match(broken(guard, "needs.changes.result != 'success'").join(), /plan-guard: .*outputs\.test-api != 'false'/);
     assert.match(
-      broken("${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.migrations", "${{ github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.migrations").join(),
+      broken(guard, "needs.changes.outputs.test-api != 'false'").join(),
+      /plan-guard: .*must run when the plan fails/
+    );
+    assert.match(
+      broken(guard, "needs.changes.result != 'success'").join(),
+      /plan-guard: .*outputs\.test-api != 'false'/
+    );
+    assert.match(
+      broken(
+        "${{ !cancelled() && github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.migrations",
+        "${{ github.event.pull_request.draft != true && (needs.changes.result != 'success' || needs.changes.outputs.migrations"
+      ).join(),
       /plan-guard: Job `migrations` its `if:` lacks `!cancelled\(\)`/
     );
   });
 
   it("requires the always-run job to run when the plan failed", () => {
     assert.match(
-      broken("(needs.changes.result != 'success' || needs.changes.outputs.mode != 'markdown')", "needs.changes.outputs.mode != 'markdown'").join(),
+      broken(
+        "(needs.changes.result != 'success' || needs.changes.outputs.mode != 'markdown')",
+        "needs.changes.outputs.mode != 'markdown'"
+      ).join(),
       /always-run: /
     );
   });
 
   it("requires the result job to run always() and need every job", () => {
-    assert.match(broken("    if: always()\n    needs: [changes, build,", "    needs: [changes, build,").join(), /result-job: .*always\(\)/);
-    assert.match(broken("needs: [changes, build, agents, test-api, test-web, migrations, e2e]", "needs: [changes, build, agents, test-api, test-web, migrations]").join(), /result-job: .*`e2e`/);
+    assert.match(
+      broken("    if: always()\n    needs: [changes, build,", "    needs: [changes, build,").join(),
+      /result-job: .*always\(\)/
+    );
+    assert.match(
+      broken(
+        "needs: [changes, build, agents, test-api, test-web, migrations, e2e]",
+        "needs: [changes, build, agents, test-api, test-web, migrations]"
+      ).join(),
+      /result-job: .*`e2e`/
+    );
   });
 
   it("requires every configured job to exist", () => {
-    const config = normalizeConfig({ ...JSON.parse(readFileSync(join(ROOT, "templates/.github/ci-kit.json"), "utf8")), alwaysRun: ["build", "typecheck"] });
-    assert.match(lintWorkflow("t.yml", TEMPLATE, config).map((f) => f.message).join(), /alwaysRun names `typecheck`/);
+    const config = normalizeConfig({
+      ...JSON.parse(readFileSync(join(ROOT, "templates/.github/ci-kit.json"), "utf8")),
+      alwaysRun: ["build", "typecheck"],
+    });
+    assert.match(
+      lintWorkflow("t.yml", TEMPLATE, config)
+        .map((f) => f.message)
+        .join(),
+      /alwaysRun names `typecheck`/
+    );
   });
 });
 
@@ -169,13 +200,21 @@ describe("repositories", () => {
     mkdirSync(join(dir, ".github/workflows"), { recursive: true });
     writeFileSync(join(dir, ".github/workflows/a.yml"), GOOD.replace("    timeout-minutes: 5\n", ""));
     writeFileSync(join(dir, ".github/ci-kit.json"), "{");
-    assert.deepEqual(lintRepository(dir).map((f) => f.rule).sort(), ["config", "timeout"]);
+    assert.deepEqual(
+      lintRepository(dir)
+        .map((f) => f.rule)
+        .sort(),
+      ["config", "timeout"]
+    );
     writeFileSync(
       join(dir, ".github/ci-kit.json"),
       JSON.stringify({ jobs: { t: { paths: ["x"] } }, lint: { ignore: { timeout: [".github/workflows/a.yml"] } } })
     );
     const found = lintRepository(dir);
-    assert.deepEqual(found.map((f) => f.rule), ["config-job"]);
+    assert.deepEqual(
+      found.map((f) => f.rule),
+      ["config-job"]
+    );
     assert.match(found[0].message, /ci\.yml doesn't exist/);
   });
 });

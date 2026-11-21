@@ -20,11 +20,9 @@ import { spawnSync } from "node:child_process";
  * @returns {Promise<{ previous: string, edited: string[] } | { previous: null, why: string }>}
  */
 export async function findRemerge({ root, head, baseTip, passed }) {
-  const git = (...args) =>
-    spawnSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const git = (...args) => spawnSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   const parents = git("rev-list", "--parents", "-n", "1", head);
-  const [, previous, merged, ...more] =
-    parents.status === 0 ? parents.stdout.trim().split(" ") : [];
+  const [, previous, merged, ...more] = parents.status === 0 ? parents.stdout.trim().split(" ") : [];
   if (!previous || !merged || more.length > 0) {
     return { previous: null, why: "the head isn't a merge of two commits" };
   }

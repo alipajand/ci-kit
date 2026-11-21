@@ -67,13 +67,24 @@ export function lintWorkflow(file, text, config = null) {
     }
   }
   for (const { line, ref } of usesLines(wf.lines)) {
-    if (/^actions\/checkout@/.test(ref) && !/^\s*persist-credentials:\s*false\s*(#.*)?$/m.test(stepAround(wf.lines, line).join("\n"))) {
-      add("checkout-credentials", line, "actions/checkout without `persist-credentials: false` leaves the token in .git/config.");
+    if (
+      /^actions\/checkout@/.test(ref) &&
+      !/^\s*persist-credentials:\s*false\s*(#.*)?$/m.test(stepAround(wf.lines, line).join("\n"))
+    ) {
+      add(
+        "checkout-credentials",
+        line,
+        "actions/checkout without `persist-credentials: false` leaves the token in .git/config."
+      );
     }
   }
   const types = wf.triggerTypes.get("pull_request");
   if (types && /pull_request\.draft/.test(text) && !types.includes("ready_for_review")) {
-    add("draft-ready", 0, "Skips drafts but `pull_request.types` lacks `ready_for_review`, so marking ready runs nothing.");
+    add(
+      "draft-ready",
+      0,
+      "Skips drafts but `pull_request.types` lacks `ready_for_review`, so marking ready runs nothing."
+    );
   }
 
   if (config) {
@@ -106,8 +117,7 @@ function lintPlanWiring(file, wf, config) {
     add("plan-job", 0, `No plan job \`${plan}\`.`);
   } else {
     const outputs = valueOf(planJob.keys.get("outputs"));
-    const exposes = (key, value) =>
-      new RegExp(`(^|\\n)\\s*${key}:\\s*\\$\\{\\{\\s*${value}\\s*\\}\\}`).test(outputs);
+    const exposes = (key, value) => new RegExp(`(^|\\n)\\s*${key}:\\s*\\$\\{\\{\\s*${value}\\s*\\}\\}`).test(outputs);
     if (!exposes("mode", "steps\\.[\\w-]+\\.outputs\\.mode")) {
       add("plan-job", planJob.line, `Plan job \`${plan}\` doesn't expose output \`mode\` from its plan step.`);
     }
@@ -202,9 +212,7 @@ export function lintRepository(root, configPath = DEFAULT_CONFIG_PATH) {
     const text = readFileSync(join(root, file), "utf8");
     const planned = config && config.workflow === file ? config : null;
     const ignore = config?.lint.ignore ?? {};
-    findings.push(
-      ...lintWorkflow(file, text, planned).filter((f) => !matchesAny(ignore[f.rule], f.file))
-    );
+    findings.push(...lintWorkflow(file, text, planned).filter((f) => !matchesAny(ignore[f.rule], f.file)));
   }
   if (config && !files.includes(config.workflow)) {
     findings.push(finding("config-job", configPath, null, `The configured workflow ${config.workflow} doesn't exist.`));
