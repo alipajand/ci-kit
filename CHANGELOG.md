@@ -7,6 +7,8 @@ Versions follow semantic versioning. Consumers pin a release commit SHA, with th
 - New CodeQL workflow (the `actions` and `javascript-typescript` languages, `security-extended` queries) and an OpenSSF Scorecard workflow.
 - Actions upgraded: checkout v7.0.1 and setup-node v7.1.0, in the workflows and the template.
 - New SECURITY.md, CONTRIBUTING.md, CODEOWNERS, issue forms and a pull request template.
+- The GitHub API client only accepts plain `/repos/<owner>/<name>/…` paths over https. A malformed repository name or pull request number in the run context is dropped before any request is made (CodeQL `js/file-access-to-http`).
+- Lint escapes every regular-expression metacharacter in job ids and rule names (CodeQL `js/incomplete-sanitization`).
 - README: version pinning guidance replaces the private-repository note, and the CLI examples pass `--allow-git=all` for npm 12.
 
 ## 1.1.0 (2026-11-20)
