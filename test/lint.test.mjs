@@ -35,6 +35,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./local
+      - uses: $/local
       - uses: docker://alpine@sha256:${"b".repeat(64)}
 `;
 

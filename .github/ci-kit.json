@@ -6,7 +6,7 @@
   },
   "noImpact": ["*.md", "LICENSE", "docs/**", ".editorconfig", ".gitignore", ".github/CODEOWNERS", ".github/ISSUE_TEMPLATE/**", ".github/pull_request_template.md"],
   "alwaysRun": ["lint", "agents"],
-  "alwaysRunPaths": ["templates/**", ".github/ci-kit.json", ".github/dependabot.yml", ".github/workflows/**", "agent-pr-reviewer-lite.config.json"],
+  "alwaysRunPaths": ["templates/**", ".github/ci-kit.json", ".github/actionlint.yaml", ".github/dependabot.yml", ".github/workflows/**", "agent-pr-reviewer-lite.config.json"],
   "markdownOnly": true,
   "remerge": { "workflow": "ci.yml" }
 }
