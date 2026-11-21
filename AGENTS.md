@@ -7,8 +7,10 @@ ci-kit plans which CI jobs a change needs and judges, at the end of a run, wheth
 ## Commands
 
 ```bash
-npm ci --ignore-scripts       # fast-check, the one dev dependency
+npm ci --ignore-scripts       # dev dependencies only: fast-check and Prettier
 npm test                      # node --test: test/**/*.test.mjs and the property tests (*.test.js)
+npm run test:coverage         # what CI runs: fails below 80% line, branch or function coverage
+npm run format                # Prettier; CI runs npm run format:check
 node bin/ci-kit.mjs lint      # ci-kit's own workflow rules, on this repository
 ```
 
@@ -24,14 +26,14 @@ CI also runs actionlint and `uvx zizmor==1.31.1 --offline --min-severity medium 
 
 ## Rules
 
-- No runtime dependencies. Node built-ins only, Node 22+. Consumers run the actions without installing anything. fast-check is the one dev dependency, for the property tests.
+- No runtime dependencies. Node built-ins only, Node 22+. Consumers run the actions without installing anything. fast-check (property tests) and Prettier (formatting) are the only dev dependencies.
 - Fail closed. A broken config, a failed plan or an unknown answer must lead to running more, never less. CI result must never pass a skipped job that should have run.
 - Keep `${{ }}` out of `action.yml` everywhere except `default:` values: the runner evaluates it even in descriptions (`test/actions.test.mjs`).
 - Pin every action by full commit SHA with the tag as a comment, and every `docker://` image by digest.
 - Never print a token, and never echo an input into a log or summary before validating its shape.
 - A behavior change updates the README (modes, config table, what CI result requires), RULES.md when a rule changes, the templates when wiring changes, and CHANGELOG.md.
-- Add or update tests next to the change. `npm test` and `node bin/ci-kit.mjs lint` must pass before a commit.
-- Commits are signed. Don't rewrite pushed history or move a release tag unless the owner asks.
+- Add or update tests next to the change; a bug fix gets a regression test. `npm run test:coverage`, `npm run format:check` and `node bin/ci-kit.mjs lint` must pass before a commit.
+- Commits are signed (`-S`) and signed off (`-s`, the [DCO](CONTRIBUTING.md#developer-certificate-of-origin)). Don't rewrite pushed history or move a release tag unless the owner asks.
 
 ## Safety boundaries
 
@@ -43,4 +45,4 @@ CI also runs actionlint and `uvx zizmor==1.31.1 --offline --min-severity medium 
 
 ## Reporting back
 
-When you finish, report what changed, the commands you ran with their results (`npm test`, `node bin/ci-kit.mjs lint`, actionlint, zizmor), and anything you skipped or couldn't verify. Don't claim a check passed unless it ran.
+When you finish, report what changed, the commands you ran with their results (`npm run test:coverage`, `npm run format:check`, `node bin/ci-kit.mjs lint`, actionlint, zizmor), and anything you skipped or couldn't verify. Don't claim a check passed unless it ran.

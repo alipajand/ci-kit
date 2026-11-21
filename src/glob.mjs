@@ -49,5 +49,4 @@ export function globToRegExp(pattern) {
 }
 
 /** Whether `path` matches any of `patterns`. */
-export const matchesAny = (patterns, path) =>
-  (patterns ?? []).some((pattern) => globToRegExp(pattern).test(path));
+export const matchesAny = (patterns, path) => (patterns ?? []).some((pattern) => globToRegExp(pattern).test(path));

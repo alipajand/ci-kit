@@ -12,7 +12,13 @@ const CLI = join(import.meta.dirname, "../bin/ci-kit.mjs");
 function pullRequestCheckout(changes) {
   const root = mkdtempSync(join(tmpdir(), "ci-kit-cmd-"));
   cpSync(FIXTURE, root, { recursive: true });
-  const env = { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@example.com", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@example.com" };
+  const env = {
+    ...process.env,
+    GIT_AUTHOR_NAME: "t",
+    GIT_AUTHOR_EMAIL: "t@example.com",
+    GIT_COMMITTER_NAME: "t",
+    GIT_COMMITTER_EMAIL: "t@example.com",
+  };
   const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8", env }).trim();
   git("init", "-q", "-b", "develop");
   git("config", "commit.gpgsign", "false");
@@ -67,7 +73,12 @@ describe("commands", () => {
     const result = run("plan", root, { payload: pr(base, head), env: { GITHUB_EVENT_NAME: "pull_request" } });
     assert.equal(result.status, 0, result.stdout);
     assert.equal(result.outputs.mode, "impact");
-    assert.deepEqual(JSON.parse(result.outputs.jobs), { "test-api": true, "test-web": false, worker: false, migrations: false });
+    assert.deepEqual(JSON.parse(result.outputs.jobs), {
+      "test-api": true,
+      "test-web": false,
+      worker: false,
+      migrations: false,
+    });
     assert.equal(result.outputs.reason, "affects api");
   });
 
@@ -95,7 +106,17 @@ describe("commands", () => {
 
   it("judges a run through NEEDS", () => {
     const needs = {
-      changes: { result: "success", outputs: { mode: "markdown", reason: "x", "test-api": "false", "test-web": "false", worker: "false", migrations: "false" } },
+      changes: {
+        result: "success",
+        outputs: {
+          mode: "markdown",
+          reason: "x",
+          "test-api": "false",
+          "test-web": "false",
+          worker: "false",
+          migrations: "false",
+        },
+      },
       build: { result: "skipped" },
       "test-api": { result: "skipped" },
       "test-web": { result: "skipped" },
@@ -107,7 +128,10 @@ describe("commands", () => {
     const payload = { pull_request: { number: 7, draft: false, base: { ref: "develop" } } };
     const env = { GITHUB_EVENT_NAME: "pull_request", NEEDS: JSON.stringify(needs) };
     assert.equal(run("result", FIXTURE, { payload, env }).status, 0);
-    const failed = run("result", FIXTURE, { payload, env: { ...env, NEEDS: JSON.stringify({ ...needs, worker: { result: "failure" } }) } });
+    const failed = run("result", FIXTURE, {
+      payload,
+      env: { ...env, NEEDS: JSON.stringify({ ...needs, worker: { result: "failure" } }) },
+    });
     assert.equal(failed.status, 1);
     assert.match(failed.stdout, /^FAIL worker: failure/m);
     assert.equal(run("result", FIXTURE, { payload, env: { ...env, NEEDS: "nope" } }).status, 1);

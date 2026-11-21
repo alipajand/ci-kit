@@ -5,15 +5,7 @@
  */
 
 import { loadConfig } from "./config.mjs";
-import {
-  api,
-  changedFilesBetween,
-  revParse,
-  runContext,
-  setOutputs,
-  summary,
-  workflowPassedOn,
-} from "./github.mjs";
+import { api, changedFilesBetween, revParse, runContext, setOutputs, summary, workflowPassedOn } from "./github.mjs";
 import { lintRepository } from "./lint.mjs";
 import { checkMergeConflict } from "./merge-conflict.mjs";
 import { planJobs } from "./plan.mjs";

@@ -12,7 +12,13 @@ function repo() {
     execFileSync("git", args, {
       cwd: root,
       encoding: "utf8",
-      env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@example.com", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@example.com" },
+      env: {
+        ...process.env,
+        GIT_AUTHOR_NAME: "t",
+        GIT_AUTHOR_EMAIL: "t@example.com",
+        GIT_COMMITTER_NAME: "t",
+        GIT_COMMITTER_EMAIL: "t@example.com",
+      },
     }).trim();
   const write = (path, text) => {
     mkdirSync(dirname(join(root, path)), { recursive: true });
@@ -59,7 +65,14 @@ describe("re-merge detection", () => {
     assert.equal(untested.previous, null);
     assert.match(untested.why, /no passing CI run/);
 
-    const failing = await findRemerge({ root, head, baseTip, passed: async () => { throw new Error("api"); } });
+    const failing = await findRemerge({
+      root,
+      head,
+      baseTip,
+      passed: async () => {
+        throw new Error("api");
+      },
+    });
     assert.equal(failing.previous, null);
   });
 
@@ -77,7 +90,12 @@ describe("re-merge detection", () => {
     git("commit", "-qm", "other");
     git("checkout", "-q", "develop");
     git("merge", "-q", "--no-edit", "other");
-    const offBase = await findRemerge({ root, head: git("rev-parse", "HEAD"), baseTip: base, passed: async () => true });
+    const offBase = await findRemerge({
+      root,
+      head: git("rev-parse", "HEAD"),
+      baseTip: base,
+      passed: async () => true,
+    });
     assert.match(offBase.why, /isn't on the base branch/);
   });
 });

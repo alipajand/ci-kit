@@ -32,7 +32,13 @@ async function main(argv) {
     case "plan":
       return runPlan({ root, configPath, token, payload: eventPayload() });
     case "result":
-      return runResult({ root, configPath, needsJson: process.env.NEEDS, sha: arg(args, "sha", process.env.PINNED_SHA ?? ""), payload: eventPayload() });
+      return runResult({
+        root,
+        configPath,
+        needsJson: process.env.NEEDS,
+        sha: arg(args, "sha", process.env.PINNED_SHA ?? ""),
+        payload: eventPayload(),
+      });
     case "merge-conflict":
       return runMergeConflict({ token, fail: args.includes("--fail"), payload: eventPayload() });
     default:

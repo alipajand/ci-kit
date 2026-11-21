@@ -21,9 +21,7 @@ function expand(root, pattern) {
   const parts = clean.split("/");
   const star = parts.findIndex((part) => part.includes("*"));
   if (star !== parts.length - 1 || parts[star] !== "*") {
-    throw new Error(
-      `ci-kit workspaces: "${pattern}" is not supported; use a directory or "<dir>/*"`
-    );
+    throw new Error(`ci-kit workspaces: "${pattern}" is not supported; use a directory or "<dir>/*"`);
   }
   const parent = parts.slice(0, -1).join("/");
   const dir = join(root, parent);

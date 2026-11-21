@@ -39,6 +39,8 @@ Anything ci-kit can't decide plans everything, and a plan that failed counts as 
 
 ## Adopting ci-kit
 
+This is the quick start: five steps from nothing to one required check.
+
 1. Copy [templates/.github/ci-kit.json](templates/.github/ci-kit.json) and [templates/.github/workflows/ci.yml](templates/.github/workflows/ci.yml) into the repository, then rename the jobs and steps to match it.
 2. Pin every `alipajand/ci-kit/*@…` reference to a release commit SHA, keeping the tag as a comment (`@<sha> # v1.0.0`). Dependabot's `github-actions` ecosystem then proposes upgrades.
 3. Wire each planned job the way the template does, and let `ci-kit lint` confirm the wiring:
@@ -119,13 +121,16 @@ npm 12 refuses git-hosted packages unless `--allow-git=all` is passed, which is 
 
 ```bash
 npm ci --ignore-scripts
-npm test
+npm run test:coverage
+npm run format:check
 ```
 
-The tests include property-based tests ([fast-check](https://fast-check.dev), the only dev dependency) for the glob matcher, the plan, the result judge and the API client.
+The tests include property-based tests ([fast-check](https://fast-check.dev)) for the glob matcher, the plan, the result judge and the API client. CI fails below 80% line, branch or function coverage, and when [Prettier](https://prettier.io) would reformat a file. fast-check and Prettier are the only dev dependencies.
 
 ```bash
 node bin/ci-kit.mjs lint
 ```
 
 ci-kit's own CI runs its own actions at the commit under test (`uses: $/plan`), then actionlint, zizmor and the agent checks. CodeQL and OpenSSF Scorecard run separately. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute, [SECURITY.md](SECURITY.md) to report a vulnerability, and [CHANGELOG.md](CHANGELOG.md) for releases.
+
+More about the project: [GOVERNANCE.md](GOVERNANCE.md) (who decides, and continuity), [ROADMAP.md](ROADMAP.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the security [assurance case](docs/ASSURANCE_CASE.md).

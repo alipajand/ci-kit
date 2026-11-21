@@ -2,7 +2,7 @@
   "workflow": ".github/workflows/ci.yml",
   "fullBranches": [],
   "jobs": {
-    "test": { "paths": ["src/**", "bin/**", "test/**", "plan/**", "result/**", "merge-conflict/**", "lint/**", "package.json", "package-lock.json"] }
+    "test": { "paths": ["src/**", "bin/**", "test/**", "plan/**", "result/**", "merge-conflict/**", "lint/**", "package.json", "package-lock.json", ".prettierrc.json"] }
   },
   "noImpact": ["*.md", "LICENSE", "docs/**", ".editorconfig", ".gitignore", ".github/CODEOWNERS", ".github/ISSUE_TEMPLATE/**", ".github/pull_request_template.md"],
   "alwaysRun": ["lint", "agents"],

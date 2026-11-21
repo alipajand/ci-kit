@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
-import { api, runContext } from "../src/github.mjs";
+import { api, changedFilesBetween, runContext, setOutputs } from "../src/github.mjs";
 
 describe("github", () => {
   it("drops a malformed repository or pull request number from the run context", () => {
@@ -13,6 +16,28 @@ describe("github", () => {
     }
     for (const bad of ["owner/repo/extra", "owner", "own er/repo", "owner/../x", "https://x/y"]) {
       assert.equal(runContext({ ...env, GITHUB_REPOSITORY: bad }, pr(7)).repository, "", bad);
+    }
+  });
+
+  it("writes each output on one line, so a value can't add a key", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ci-kit-outputs-"));
+    const saved = process.env.GITHUB_OUTPUT;
+    process.env.GITHUB_OUTPUT = join(dir, "output");
+    try {
+      setOutputs({ reason: "first\nmode=full\r\nsecond", mode: "impact" });
+      assert.equal(readFileSync(process.env.GITHUB_OUTPUT, "utf8"), "reason=first mode=full second\nmode=impact\n");
+    } finally {
+      if (saved === undefined) delete process.env.GITHUB_OUTPUT;
+      else process.env.GITHUB_OUTPUT = saved;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("passes only full commit SHAs to git diff", () => {
+    const sha = "c".repeat(40);
+    for (const bad of ["", null, undefined, "0".repeat(40), "--output=/tmp/x", "HEAD", "abc123", `${sha} x`]) {
+      assert.equal(changedFilesBetween("/nonexistent", bad, sha), null, String(bad));
+      assert.equal(changedFilesBetween("/nonexistent", sha, bad), null, String(bad));
     }
   });
 
