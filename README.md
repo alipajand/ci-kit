@@ -127,4 +127,4 @@ The tests include property-based tests ([fast-check](https://fast-check.dev), th
 node bin/ci-kit.mjs lint
 ```
 
-ci-kit's own CI runs its actions from the checkout (`uses: ./plan`), then actionlint, zizmor and the agent checks. CodeQL and OpenSSF Scorecard run separately. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute, [SECURITY.md](SECURITY.md) to report a vulnerability, and [CHANGELOG.md](CHANGELOG.md) for releases.
+ci-kit's own CI runs its own actions at the commit under test (`uses: $/plan`), then actionlint, zizmor and the agent checks. CodeQL and OpenSSF Scorecard run separately. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute, [SECURITY.md](SECURITY.md) to report a vulnerability, and [CHANGELOG.md](CHANGELOG.md) for releases.

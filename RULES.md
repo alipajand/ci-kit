@@ -4,7 +4,7 @@ The rules every GitHub Actions setup using ci-kit follows. **Lint** marks the on
 
 ## Supply chain
 
-1. **Pin every action to a full commit SHA**, with the tag as a comment: `uses: actions/checkout@<40-hex sha> # v6.1.0`. Pin Docker images by `@sha256:` digest. A tag can be moved; a SHA can't. *Lint (`pinned-uses`), zizmor.*
+1. **Pin every action to a full commit SHA**, with the tag as a comment: `uses: actions/checkout@<40-hex sha> # v6.1.0`. Pin Docker images by `@sha256:` digest. A tag can be moved; a SHA can't. Reference this repository's own actions as `uses: $/path`: it runs the path at the running commit, needs no checkout, and can't load an action written into the workspace by an earlier step, as `./path` can. *Lint (`pinned-uses`), zizmor.*
 2. **Let Dependabot propose upgrades**, with a cooldown so a freshly compromised release isn't adopted the day it ships:
 
    ```yaml

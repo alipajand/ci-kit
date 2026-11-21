@@ -1,6 +1,6 @@
 name: CI
 
-# ci-kit's own CI, built from its own actions (`uses: ./plan` and so on), so every change is
+# ci-kit's own CI, built from its own actions (`uses: $/plan` and so on), so every change is
 # tested by the code it changes. Its one required check is "CI result".
 #
 # - A draft runs nothing but CI result, which fails it; marking it ready (or a push) runs again.
@@ -43,7 +43,7 @@ jobs:
 
       - name: Plan the jobs
         id: plan
-        uses: ./plan
+        uses: $/plan
 
   lint:
     name: Lint
@@ -62,10 +62,10 @@ jobs:
 
       - name: Merge conflict
         if: github.event_name == 'pull_request'
-        uses: ./merge-conflict
+        uses: $/merge-conflict
 
       - name: Workflow rules (ci-kit lint)
-        uses: ./lint
+        uses: $/lint
 
       - name: actionlint
         run: docker run --rm -v "$PWD:/repo" -w /repo "$ACTIONLINT_IMAGE" -color
@@ -172,6 +172,6 @@ jobs:
           persist-credentials: false
 
       - name: Check every job against the plan
-        uses: ./result
+        uses: $/result
         with:
           needs: ${{ toJSON(needs) }}

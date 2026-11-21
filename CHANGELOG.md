@@ -2,6 +2,11 @@
 
 Versions follow semantic versioning. Consumers pin a release commit SHA, with the tag as a comment.
 
+## Unreleased
+
+- Lint accepts GitHub's self-repository syntax (`uses: $/path`) as this repository's own code, like `./path`. RULES.md rule 1 recommends it for in-repo actions.
+- ci-kit's own CI references its actions as `$/plan`, `$/result`, `$/merge-conflict` and `$/lint`, which clears zizmor's `self-repository` notes. A scoped `.github/actionlint.yaml` ignore covers actionlint 1.7.12, which doesn't know the syntax yet.
+
 ## 1.2.1 (2026-11-20)
 
 - Releases are published by a release workflow from a signed `v*` tag. Each one is immutable and carries the npm-packed tarball, `SHA256SUMS` and a signed SLSA build provenance attestation (`gh attestation verify`).

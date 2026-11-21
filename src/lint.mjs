@@ -55,7 +55,8 @@ export function lintWorkflow(file, text, config = null) {
     }
   }
   for (const { line, ref } of usesLines(wf.lines)) {
-    if (ref.startsWith("./") || ref.startsWith("docker://")) {
+    // `$/path` (self-repository) and `./path` run this repository's own code at the running commit.
+    if (ref.startsWith("$/") || ref.startsWith("./") || ref.startsWith("docker://")) {
       if (ref.startsWith("docker://") && !ref.includes("@sha256:")) {
         add("pinned-uses", line, `\`${ref}\` isn't pinned to an image digest.`);
       }
