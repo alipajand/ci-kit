@@ -2,7 +2,7 @@
 
 Versions follow semantic versioning. Consumers pin a release commit SHA, with the tag as a comment.
 
-## Unreleased
+## 1.2.0 (2026-11-20)
 
 - New CodeQL workflow (the `actions` and `javascript-typescript` languages, `security-extended` queries) and an OpenSSF Scorecard workflow.
 - Actions upgraded: checkout v7.0.1 and setup-node v7.1.0, in the workflows and the template.
