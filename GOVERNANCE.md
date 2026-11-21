@@ -22,7 +22,7 @@ ci-kit is a small project with one maintainer. This file says who decides what, 
 
 ci-kit must be able to continue if the maintainer dies, is incapacitated, or stops supporting it:
 
-- **Access.** A successor the maintainer designates through GitHub's [account successor](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/maintaining-ownership-continuity-of-your-personal-accounts-repositories) setting can take over the repository to create and close issues, accept pull requests and publish releases. Secrets aren't involved: CI uses only the run's temporary `GITHUB_TOKEN`, and releases are signed through GitHub's OIDC identity, not a stored key.
+- **Access.** The maintainer has designated a successor through GitHub's [account successor](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/maintaining-ownership-continuity-of-your-personal-accounts-repositories) setting. The successor can take over the repository to create and close issues, accept pull requests and publish releases. Secrets aren't involved: CI uses only the run's temporary `GITHUB_TOKEN`, and releases are signed through GitHub's OIDC identity, not a stored key.
 - **Users are never stranded.** Consumers pin release commit SHAs, so existing workflows keep working whatever happens to the repository. The code is MIT-licensed with no runtime dependencies, so anyone can fork it and keep a pinned copy.
 - **Bus factor.** The bus factor is 1 today. A second maintainer with admin access would raise it to 2. Contributors who want to help maintain ci-kit are welcome to say so in an issue.
 
