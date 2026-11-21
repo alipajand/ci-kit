@@ -3,6 +3,7 @@
 [![CI](https://github.com/alipajand/ci-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alipajand/ci-kit/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/alipajand/ci-kit/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/alipajand/ci-kit/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/alipajand/ci-kit/badge)](https://scorecard.dev/viewer/?uri=github.com/alipajand/ci-kit)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16962/badge)](https://www.bestpractices.dev/projects/16962)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Change-aware CI for GitHub Actions. ci-kit decides which jobs a pull request needs, and checks at the end that every job ran as planned. This makes one required check, **CI result**, safe to lean on: a job skipped by mistake can't pass as "not needed".
