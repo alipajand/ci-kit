@@ -29,6 +29,8 @@ export function eventPayload() {
  * The run's context. `baseRef` is the pull request's base branch, or the branch a push or a manual
  * run is on. A called workflow (`workflow_call`) sees its caller's event.
  */
+const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+
 export function runContext(env = process.env, payload = eventPayload()) {
   const event = env.GITHUB_EVENT_NAME ?? "";
   const pull = payload.pull_request ?? null;
@@ -36,10 +38,10 @@ export function runContext(env = process.env, payload = eventPayload()) {
     event,
     baseRef: event === "pull_request" ? (pull?.base?.ref ?? env.GITHUB_BASE_REF ?? "") : (env.GITHUB_REF_NAME ?? ""),
     draft: event === "pull_request" && pull?.draft === true,
-    prNumber: pull?.number ?? null,
+    prNumber: Number.isSafeInteger(pull?.number) && pull.number > 0 ? pull.number : null,
     before: payload.before ?? "",
     after: payload.after ?? "",
-    repository: env.GITHUB_REPOSITORY ?? "",
+    repository: REPOSITORY.test(env.GITHUB_REPOSITORY ?? "") ? env.GITHUB_REPOSITORY : "",
     runSha: env.GITHUB_SHA ?? "",
   };
 }
@@ -66,10 +68,23 @@ export function summary(markdown) {
   }
 }
 
-/** A GET against the REST API with the run's token. */
+const API_PATH = /^\/repos\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+(\?[A-Za-z0-9_=&.-]*)?$/;
+
+/**
+ * A GET against the REST API with the run's token. Only `/repos/<owner>/<name>/…` paths made of
+ * plain characters are allowed, so nothing read from the event file can redirect or extend the
+ * request.
+ */
 export async function api(path, token = process.env.GITHUB_TOKEN) {
-  const base = process.env.GITHUB_API_URL || "https://api.github.com";
-  const response = await fetch(`${base}${path}`, {
+  if (!API_PATH.test(path) || path.includes("..")) {
+    throw new Error("refusing an unexpected API path");
+  }
+  const base = new URL(process.env.GITHUB_API_URL || "https://api.github.com");
+  if (base.protocol !== "https:") {
+    throw new Error("GITHUB_API_URL must be https");
+  }
+  const url = new URL(`${base.pathname.replace(/\/$/, "")}${path}`, base.origin);
+  const response = await fetch(url, {
     headers: {
       accept: "application/vnd.github+json",
       ...(token ? { authorization: `Bearer ${token}` } : {}),

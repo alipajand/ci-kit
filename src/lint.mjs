@@ -81,11 +81,14 @@ export function lintWorkflow(file, text, config = null) {
   return found.filter((f) => !ignoredInline(wf.lines, f));
 }
 
+/** Escapes every regular-expression metacharacter, backslash included. */
+const escapeRegExp = (text) => text.replace(/[\\^$.*+?()[\]{}|\/-]/g, "\\$&");
+
 function ignoredInline(lines, f) {
   if (!f.line) {
     return false;
   }
-  const marker = new RegExp(`#\\s*ci-kit-ignore:\\s*[^\\n]*\\b${f.rule.replace(/-/g, "\\-")}\\b`);
+  const marker = new RegExp(`#\\s*ci-kit-ignore:\\s*[^\\n]*\\b${escapeRegExp(f.rule)}\\b`);
   return [lines[f.line - 1], lines[f.line - 2]].some((line) => line !== undefined && marker.test(line));
 }
 
@@ -104,12 +107,11 @@ function lintPlanWiring(file, wf, config) {
     const outputs = valueOf(planJob.keys.get("outputs"));
     const exposes = (key, value) =>
       new RegExp(`(^|\\n)\\s*${key}:\\s*\\$\\{\\{\\s*${value}\\s*\\}\\}`).test(outputs);
-    const escape = (text) => text.replace(/[-.]/g, "\\$&");
     if (!exposes("mode", "steps\\.[\\w-]+\\.outputs\\.mode")) {
       add("plan-job", planJob.line, `Plan job \`${plan}\` doesn't expose output \`mode\` from its plan step.`);
     }
     for (const key of Object.keys(config.jobs)) {
-      const id = escape(key);
+      const id = escapeRegExp(key);
       if (!exposes(id, `fromJSON\\(steps\\.[\\w-]+\\.outputs\\.jobs\\)(?:\\[["']${id}["']\\]|\\.${id})`)) {
         add(
           "plan-job",
