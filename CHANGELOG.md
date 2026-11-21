@@ -2,6 +2,13 @@
 
 Versions follow semantic versioning. Consumers pin a release commit SHA, with the tag as a comment.
 
+## Unreleased
+
+- New CodeQL workflow (the `actions` and `javascript-typescript` languages, `security-extended` queries) and an OpenSSF Scorecard workflow.
+- Actions upgraded: checkout v7.0.1 and setup-node v7.1.0, in the workflows and the template.
+- New SECURITY.md, CONTRIBUTING.md, CODEOWNERS, issue forms and a pull request template.
+- README: version pinning guidance replaces the private-repository note, and the CLI examples pass `--allow-git=all` for npm 12.
+
 ## 1.1.0 (2026-11-20)
 
 - Agent instruction files (AGENTS.md, CLAUDE.md, GEMINI.md, Copilot instructions and prompts, `.claude/`, `.cursor/`, `.windsurf/`) never count as Markdown-only, so a change to one always runs the always-run jobs.

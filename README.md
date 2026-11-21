@@ -1,5 +1,10 @@
 # ci-kit
 
+[![CI](https://github.com/alipajand/ci-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alipajand/ci-kit/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/alipajand/ci-kit/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/alipajand/ci-kit/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/alipajand/ci-kit/badge)](https://scorecard.dev/viewer/?uri=github.com/alipajand/ci-kit)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Change-aware CI for GitHub Actions. ci-kit decides which jobs a pull request needs, and checks at the end that every job ran as planned. This makes one required check, **CI result**, safe to lean on: a job skipped by mistake can't pass as "not needed".
 
 It ships as four JavaScript actions and a CLI (Node 22+, no dependencies), configured by one file, `.github/ci-kit.json`. A playbook, [RULES.md](RULES.md), covers the workflow rules the linter checks and the ones it can't.
@@ -40,12 +45,12 @@ Anything ci-kit can't decide plans everything, and a plan that failed counts as 
    - a planned job `needs` the plan job and runs `if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.<job> != 'false') }}`. This is fail-open: a failed or skipped plan runs the job;
    - an always-run job skips only on a Markdown-only plan: `needs.changes.result != 'success' || needs.changes.outputs.mode != 'markdown'`;
    - the result job runs `if: always()`, `needs` every other job, and passes `needs: ${{ toJSON(needs) }}` to `ci-kit/result`.
-4. Run `npx --yes github:alipajand/ci-kit lint` (or the `lint` action) until it's clean.
+4. Run `npx --yes --allow-git=all github:alipajand/ci-kit#<sha> lint` (or the `lint` action) until it's clean.
 5. In branch protection or a ruleset, make **CI result** the only required check of each protected branch. Remove the job-level required checks, because a skipped job counts as passing.
 
-### Private repository
+### Versions
 
-While `alipajand/ci-kit` is private, only repositories owned by `alipajand` can use its actions. In the repository's **Settings → Actions → General → Access**, allow access from repositories owned by the user. A repository under another owner (an organization) needs ci-kit public, or a vendored copy at a pinned commit.
+Pin a release commit SHA, never a tag or a branch: `alipajand/ci-kit/plan@<sha> # v1.1.0`. Release tags are immutable. Every release commit and tag is signed, and [CHANGELOG.md](CHANGELOG.md) lists what changed. Dependabot's `github-actions` ecosystem proposes upgrades.
 
 ## Configuration
 
@@ -95,8 +100,10 @@ The reviewer installs from GitHub at a pinned commit. npm 12 refuses git depende
 ## CLI
 
 ```bash
-npx --yes github:alipajand/ci-kit lint [--root .] [--config .github/ci-kit.json]
+npx --yes --allow-git=all github:alipajand/ci-kit#<sha> lint [--root .] [--config .github/ci-kit.json]
 ```
+
+npm 12 refuses git-hosted packages unless `--allow-git=all` is passed, which is why the flag is there.
 
 `plan`, `result` (reads `NEEDS`, and `PINNED_SHA` or `--sha`) and `merge-conflict [--fail]` read the same environment GitHub Actions sets: `GITHUB_EVENT_NAME`, `GITHUB_EVENT_PATH`, `GITHUB_OUTPUT`, `GITHUB_STEP_SUMMARY`, `GITHUB_REPOSITORY`, `GITHUB_TOKEN`.
 
@@ -110,4 +117,4 @@ npm test
 node bin/ci-kit.mjs lint
 ```
 
-ci-kit's own CI runs its actions from the checkout (`uses: ./plan`), then actionlint and zizmor. See [CHANGELOG.md](CHANGELOG.md) for releases.
+ci-kit's own CI runs its actions from the checkout (`uses: ./plan`), then actionlint, zizmor and the agent checks. CodeQL and OpenSSF Scorecard run separately. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute, [SECURITY.md](SECURITY.md) to report a vulnerability, and [CHANGELOG.md](CHANGELOG.md) for releases.
