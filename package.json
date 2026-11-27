@@ -46,7 +46,7 @@
     "lint:workflows": "node bin/ci-kit.mjs lint"
   },
   "devDependencies": {
-    "fast-check": "4.10.2",
+    "fast-check": "4.10.3",
     "prettier": "3.10.1"
   }
 }
