@@ -14,6 +14,7 @@ const DEFAULTS = {
   workflow: ".github/workflows/ci.yml",
   planJob: "changes",
   resultJob: "result",
+  exactPlan: false,
   fullBranches: ["main"],
   workspaces: [],
   workspaceInputs: {},
@@ -63,6 +64,9 @@ export function normalizeConfig(raw) {
     if (typeof config[key] !== "string" || config[key] === "") {
       fail(`${key} must be a non-empty string`);
     }
+  }
+  if (typeof config.exactPlan !== "boolean") {
+    fail("exactPlan must be a boolean");
   }
   stringList(config.fullBranches, "fullBranches");
   globList(config.workspaces, "workspaces");

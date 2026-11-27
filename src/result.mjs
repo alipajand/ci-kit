@@ -9,6 +9,7 @@
  * - every job the plan selected succeeded, and every other planned job was skipped or succeeded;
  * - without a usable plan (the plan job didn't succeed, or its outputs are malformed or contradict
  *   the event), every planned job succeeded;
+ * - when exactPlan is enabled, the plan is usable and each deselected planned job was skipped;
  * - the release jobs succeeded on a ready pull request into a full branch, and were skipped
  *   everywhere else; on a manual run the `manual.jobs` succeeded and the other release jobs were
  *   skipped;
@@ -71,6 +72,11 @@ export function verifyResults(config, needs, context) {
     }
   }
 
+  if (!planned && config.exactPlan) {
+    ok = false;
+    lines.push("FAIL exactPlan requires a successful plan with usable outputs.");
+  }
+
   const check = (job, shouldRun, why = "") => {
     const result = needs[job]?.result ?? "missing";
     const good = shouldRun ? result === "success" : result === "skipped" || result === "success";
@@ -94,7 +100,11 @@ export function verifyResults(config, needs, context) {
     check(job, !markdown && !isDraft, markdown ? ", Markdown only" : "");
   }
   for (const job of Object.keys(config.jobs)) {
-    check(job, planned ? planned[job] === "true" : !isDraft);
+    if (config.exactPlan && planned?.[job] === "false") {
+      mustSkip(job, "deselected by the plan");
+    } else {
+      check(job, planned ? planned[job] === "true" : !isDraft);
+    }
   }
   const conflict = planned?.mode === "conflict";
   for (const job of config.release.jobs) {
