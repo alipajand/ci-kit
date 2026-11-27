@@ -39,7 +39,7 @@ The rules every GitHub Actions setup using ci-kit follows. **Lint** marks the on
 ## Required checks
 
 15. **Make one check required: CI result.** A skipped job counts as passing, so a required job check is one bad `if:` away from waving a pull request through. *Lint (`result-job`).*
-16. **CI result runs `if: always()` and `needs` every job.** It fails unless each job ran as the plan required, and it fails closed: no usable plan means every job was required. *Lint (`result-job`).*
+16. **CI result runs `if: always()` and `needs` every job.** By default, an unusable plan requires every planned job to succeed. With `exactPlan` enabled, an unusable plan fails the result and each deselected planned job must report `skipped`. *Lint (`result-job`).*
 17. **Planned jobs fail open.** They run unless the plan succeeded and said skip: `!cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.<job> != 'false')`. *Lint (`plan-guard`).*
 18. **Always-run jobs run whenever the plan didn't succeed.** *Lint (`always-run`).*
 19. **The config and the workflow agree.** Every job the config names exists, and the plan job exposes each planned job. *Lint (`config`, `plan-job`, `config-job`).*

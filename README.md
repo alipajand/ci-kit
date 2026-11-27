@@ -53,13 +53,13 @@ This is the quick start: five steps from nothing to one required check.
 
 ### Versions
 
-Pin a release commit SHA, never a tag or a branch: `alipajand/ci-kit/plan@<sha> # v1.2.1`. Release tags are immutable. Every release commit and tag is signed, and [CHANGELOG.md](CHANGELOG.md) lists what changed. Dependabot's `github-actions` ecosystem proposes upgrades.
+Pin a release commit SHA, never a tag or a branch: `alipajand/ci-kit/plan@<sha> # v1.3.0`. Release tags are immutable. Every release commit and tag is signed, and [CHANGELOG.md](CHANGELOG.md) lists what changed. Dependabot's `github-actions` ecosystem proposes upgrades.
 
 From 1.2.1, the [release workflow](.github/workflows/release.yml) publishes each release from its tag. Every release is immutable and carries the packed tarball, its `SHA256SUMS`, and a signed SLSA build provenance attestation. To verify a download:
 
 ```bash
-gh attestation verify ci-kit-1.2.1.tgz --repo alipajand/ci-kit
-gh release verify v1.2.1 --repo alipajand/ci-kit
+gh attestation verify ci-kit-1.3.0.tgz --repo alipajand/ci-kit
+gh release verify v1.3.0 --repo alipajand/ci-kit
 ```
 
 ## Configuration
@@ -70,7 +70,7 @@ gh release verify v1.2.1 --repo alipajand/ci-kit
 | --- | --- | --- |
 | `workflow` | `.github/workflows/ci.yml` | The planned workflow, checked by `lint`. |
 | `planJob` | `changes` | The job that runs `ci-kit/plan`. |
-| `exactPlan` | `false` | Require a usable plan and a skipped result for each planned job it deselects. |
+| `exactPlan` | `false` | Available in 1.3.0. Require a usable plan and a skipped result for each planned job it deselects. |
 | `resultJob` | `result` | The job that runs `ci-kit/result`. |
 | `fullBranches` | `["main"]` | Base branches whose pull requests and pushes run every job. |
 | `workspaces` | `[]` | Workspace directories: `apps/api` or `apps/*`. Each directory needs a `package.json`. A dependency on another workspace makes the dependent affected too, transitively. |
