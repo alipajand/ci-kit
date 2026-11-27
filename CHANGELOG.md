@@ -2,10 +2,9 @@
 
 Versions follow semantic versioning. Consumers pin a release commit SHA, with the tag as a comment.
 
-## Unreleased
+## 1.3.0 (2026-11-27)
 
 - An opt-in `exactPlan` setting requires the result judge to see a successful, usable plan and exactly the planned job outcomes. The default keeps the all-jobs fallback.
-
 - Lint accepts GitHub's self-repository syntax (`uses: $/path`) as this repository's own code, like `./path`. RULES.md rule 1 recommends it for in-repo actions.
 - ci-kit's own CI references its actions as `$/plan`, `$/result`, `$/merge-conflict` and `$/lint`, which clears zizmor's `self-repository` notes. A scoped `.github/actionlint.yaml` ignore covers actionlint 1.7.12, which doesn't know the syntax yet.
 - The plan passes only full commit SHAs from the event payload to `git diff`, so a malformed `before`/`after` value can't reach git's command line as an option.
