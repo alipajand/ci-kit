@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { normalizeConfig } from "../src/config.mjs";
 import { verifyResults } from "../src/result.mjs";
 import { CONFIG, PLANNED } from "./helpers.mjs";
 
@@ -79,6 +80,28 @@ describe("result", () => {
 
     it("refuses needs that aren't an object", () => {
       assert.equal(verifyResults(CONFIG, null, READY).ok, false);
+    });
+  });
+
+  describe("exactPlan", () => {
+    const exact = normalizeConfig({ ...CONFIG, exactPlan: true });
+    it("requires a boolean in the configuration", () => {
+      assert.throws(() => normalizeConfig({ ...CONFIG, exactPlan: "false" }), /exactPlan must be a boolean/);
+    });
+    it("accepts a selected success and an explicit skip for every deselected job", () => {
+      const good = needs(plan("impact", ["worker"]), ran(["worker"]));
+      assert.equal(verifyResults(exact, good, READY).ok, true);
+      const extra = { ...good, [PLANNED.find((id) => id !== "worker")]: success };
+      assert.equal(verifyResults(CONFIG, extra, READY).ok, true);
+      assert.equal(verifyResults(exact, extra, READY).ok, false);
+    });
+
+    it("refuses a missing, failed or unusable plan even if every workload succeeded", () => {
+      for (const changes of [undefined, failure, plan("full", ["worker"])]) {
+        const all = needs(changes, ran(PLANNED));
+        assert.equal(verifyResults(CONFIG, all, READY).ok, true);
+        assert.equal(verifyResults(exact, all, READY).ok, false);
+      }
     });
   });
 

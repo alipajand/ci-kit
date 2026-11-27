@@ -70,6 +70,7 @@ gh release verify v1.2.1 --repo alipajand/ci-kit
 | --- | --- | --- |
 | `workflow` | `.github/workflows/ci.yml` | The planned workflow, checked by `lint`. |
 | `planJob` | `changes` | The job that runs `ci-kit/plan`. |
+| `exactPlan` | `false` | Require a usable plan and a skipped result for each planned job it deselects. |
 | `resultJob` | `result` | The job that runs `ci-kit/result`. |
 | `fullBranches` | `["main"]` | Base branches whose pull requests and pushes run every job. |
 | `workspaces` | `[]` | Workspace directories: `apps/api` or `apps/*`. Each directory needs a `package.json`. A dependency on another workspace makes the dependent affected too, transitively. |
@@ -90,7 +91,7 @@ Globs are anchored at the repository root: `*` stays within one path segment, `*
 
 - **Plan job**: if it didn't succeed, or its outputs don't fit the event (a skipping mode on a full branch, say), there is no usable plan and every planned job is required.
 - **Always-run jobs**: success, except on a `markdown` plan or a draft.
-- **Planned jobs**: success when the plan says true. A job the plan didn't need may be skipped or succeed. With no usable plan, all of them are required.
+- **Planned jobs**: success when the plan says true. A job the plan didn't need may be skipped or succeed. With no usable plan, all of them are required. If `exactPlan` is enabled, an unusable plan fails the result even if every job succeeded, and a deselected planned job must report `skipped`. This option covers the plan and the `jobs` group.
 - **Release jobs**: success on a ready pull request into a full branch; elsewhere skipped or success. On a manual run, `manual.jobs` must succeed and the other release jobs must be skipped.
 - **Any other job in `needs`**: success.
 - A `draft` or `conflict` plan always fails.
